@@ -1,0 +1,128 @@
+<!doctype html>
+<html>
+<head>
+
+<title>Bubble</title>
+<style>
+  html,body{height:100%;display:grid;place-items:center;background:grey;}
+  .wrap{background:darkgray;padding:24px;display:grid;gap:16px}
+  .row{display:flex;gap:10px;justify-content:center}
+  button{padding:10px 18px;background:whitesmoke;font-weight:600}
+  button:active{transform:translateY(2px)}
+  canvas{background:white}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <canvas id="c" width="820" height="340"></canvas>
+    <div class="row">
+      <button id="hit">Hit</button>
+      <button id="reset">Reset</button>
+    </div>
+  </div>
+  <script>
+    const canvas = document.getElementById('c');
+    const ctx = canvas.getContext('2d');
+    const R = 50;
+    const marginRight = 40;
+
+    function randColor() {
+      return '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
+    }
+
+    const circle = {
+      x: 100,
+      y: canvas.height / 2,
+      r: R,
+      color: randColor()
+    };
+
+    const arrow = {
+      headL: 30,
+      headH: 14,
+      shaftL: 140,
+      shaftT: 8,
+      speed: 6
+    };
+    arrow.tipY = canvas.height / 2;
+    arrow.tipX = canvas.width - marginRight - (arrow.headL + arrow.shaftL);
+
+    let anim = false,
+      hit = false;
+
+    function drawCircle() {
+      ctx.beginPath();
+      ctx.arc(circle.x, circle.y, circle.r, 0, Math.PI * 2);
+      ctx.fillStyle = circle.color;
+      ctx.fill();
+    }
+
+    function drawArrow() {
+      const tX = arrow.tipX,
+        tY = arrow.tipY,
+        hL = arrow.headL,
+        hH = arrow.headH,
+        sT = arrow.shaftT;
+      const tailX = tX + hL + arrow.shaftL;
+      ctx.lineCap = 'round';
+      ctx.lineWidth = sT;
+      ctx.beginPath();
+      ctx.moveTo(tX + hL, tY);
+      ctx.lineTo(tailX, tY);
+      ctx.strokeStyle = '#111827';
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(tX, tY);
+      ctx.lineTo(tX + hL, tY - hH);
+      ctx.lineTo(tX + hL, tY + hH);
+      ctx.closePath();
+      ctx.fillStyle = '#111827';
+      ctx.fill();
+    }
+
+    function clear() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function drawScene() {
+      clear();
+      drawCircle();
+      drawArrow();
+    }
+
+    function step() {
+      if (!anim) return;
+      arrow.tipX -= arrow.speed;
+      if (arrow.tipX <= circle.x + circle.r) {
+        arrow.tipX = circle.x + circle.r;
+        anim = false;
+        hit = true;
+        let n = randColor();
+        while (n.toLowerCase() === circle.color.toLowerCase()) n = randColor();
+        circle.color = n;
+      }
+      drawScene();
+      if (anim) requestAnimationFrame(step);
+    }
+
+    function reset() {
+      circle.color = randColor();
+      arrow.tipY = canvas.height / 2;
+      arrow.tipX = canvas.width - marginRight - (arrow.headL + arrow.shaftL);
+      hit = false;
+      anim = false;
+      drawScene();
+    }
+    
+    reset();
+
+    document.getElementById('hit').addEventListener('click', () => {
+      if (anim || hit) return;
+      anim = true;
+      requestAnimationFrame(step)
+    });
+
+    document.getElementById('reset').addEventListener('click', reset);
+  </script>
+</body>
+</html>
